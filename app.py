@@ -7,32 +7,52 @@ import json
 import csv
 from math import *
 
-with open('map.json') as data_file:
-    us_json = json.load(data_file)
-
 app = Flask(__name__)
 
 
+# Thay phần trong route '/' của bạn
 @app.route('/')
-def cjson():
-    def disp(reader):
-        df = []
-        for row in reader:
-            df.append(row)
-        return df
+def index():
+    # 1. Đọc dữ liệu phim
+    df = pd.read_csv("data.csv")  # file của bạn
 
-    with open("countriesData.csv", 'r+') as f:
-        reader = csv.reader(f)
-        df = disp(reader)
-        matric = [df[1][2], df[2][2], df[3][2], df[4][2], df[5][2], df[6][2], df[7][2], df[8][2], df[9][2], df[10][2],
-                  df[11][2], df[12][2], df[13][2], df[14][2], df[15][2], df[16][2], df[17][2]]
-        CountryCode = []
-        for i in range(1, len(df) - 17, 17):
-            CountryCode.append(df[i][1])
-        return render_template("test.html", senddata=us_json, df=df, matric=matric, CountryCode=CountryCode)
+    # 2. Tính trung bình IMDbRating theo Country (dùng Country làm key)
+    avg_rating = df.groupby('Country')['IMDbRating'].mean().round(2)
+    rating_dict = avg_rating.to_dict()
 
+    # 3. Đọc GeoJSON thế giới
+    with open('map.json') as f:
+        world = json.load(f)
 
+    # 4. Gắn avg rating vào từng feature
+    min_val = avg_rating.min()
+    max_val = avg_rating.max()
 
+    for feature in world['features']:
+        country_name = feature['properties'].get('name', '')
+        code = feature['id']
+
+        # Nhiều nước tên trong GeoJSON khác với CSV → map thủ công một chút
+        name_mapping = {
+            "United States": "USA",
+            "United States of America": "USA",
+            "America": "USA",
+        }
+        lookup_name = name_mapping.get(country_name, country_name)
+
+        rating = rating_dict.get(lookup_name)
+        feature['properties']['avgIMDbRating'] = rating if rating is not None else None
+        feature['properties']['minRating'] = min_val
+        feature['properties']['maxRating'] = max_val
+
+    # 5. Danh sách quốc gia có phim (cho dropdown radar)
+    countries_with_data = avg_rating.index.tolist()
+
+    return render_template('test.html',
+                           geojson=world,
+                           min_rating=min_val,
+                           max_rating=max_val,
+                           countries=countries_with_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
