@@ -1,363 +1,251 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
 <head>
-    <title>Home | A Visualization System for Country Data</title>
-    <meta charset="utf-8">
-    <script src="../static/internal/d3.v3.min.js"></script>
-    <script src="../static/internal/topojson.v1.min.js"></script>
-    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
-    <script src="../static/internal/jquery.min.js"></script>
-    <script src="http://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.9/dist/js/bootstrap-select.min.js"></script>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.9/dist/css/bootstrap-select.min.css">
-    <link rel="stylesheet" href="../static/internal/bootstrap.min.css">
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
-    <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+    <meta charset="UTF-8">
+    <title>Movie World Dashboard | Genre, Country & Directors</title>
+    <!-- D3 v3 -->
+    <script src="https://d3js.org/d3.v3.min.js"></script>
     <style>
         * {
-            padding: 0;
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
         html, body {
             height: 100%;
-            width: 100%;
-            font-family: 'Raleway', sans-serif;
-            background-color: #fff;
-            color: #000;
-            font-size: medium;
-            font-weight: 400;
-            margin: 0;
+            font-family: 'Raleway', Arial, sans-serif;
+            background-color: #ffffff;
+            color: #111;
         }
-
-        .Filter {
-            width: 100%;
-            height: 8%;
-            float: left;
-            box-sizing: border-box;
-            border: 1px solid lightgrey;
-            background-color: white;
-        }
-
-        .matric {
-            width: 30%;
-            height: 100%;
-            float: left;
-            box-sizing: border-box;
-            border: 1px solid lightgrey;
-            border-radius: 10px;
-            background-color: rgba(176, 196, 222, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .yeardrag {
-            width: 40%;
-            height: 100%;
-            float: left;
-            box-sizing: border-box;
-            border: 1px solid lightgrey;
-            border-radius: 10px;
-            background-color: rgba(176, 196, 222, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-        }
-
-        .countryselect {
-            width: 30%;
-            height: 100%;
-            float: left;
-            box-sizing: border-box;
-            border: 1px solid lightgrey;
-            border-radius: 10px;
-            background-color: rgba(176, 196, 222, 0.2);
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .rectmap {
-            width: 40%;
-            height: 92%;
-            float: left;
-            box-sizing: border-box;
-            border: 1px solid lightgrey;
-            border-radius: 10px;
-        }
-
-        .radarChart {
-            width: 100%;
-            height: 60%;
-            float: left;
-            box-sizing: border-box;
-            border: 1px solid lightgrey;
-            background-color: rgba(240, 128, 128, 0.1);
-            border-radius: 10px;
-        }
-
-        #rect {
-            width: 100%;
-            height: 40%;
-            float: left;
-            box-sizing: border-box;
-            border: 1px solid lightgrey;
-            background-color: rgba(240, 128, 128, 0.1);
-            border-radius: 10px;
-        }
-
-        #globe {
-            width: 47%;
-            height: 92%;
-            float: left;
-            box-sizing: border-box;
-            border: 1px solid lightgrey;
-            background-color: rgba(192, 192, 192, 0.3);
-            border-radius: 10px;
-        }
-
-        .matricsform {
-            width: 13%;
-            height: 92%;
-            float: left;
-            font-size: 14px;
-            line-height: 2.5;
-            box-sizing: border-box;
-            border: 1px solid lightgrey;
-            background-color: rgba(240, 128, 128, 0.2);
-            border-radius: 10px;
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #matric {
-            margin-top: 2%;
-            margin-left: 8%;
-            width: 80%;
-        }
-
-        #countries {
-            margin-top: 2%;
-            margin-left: 8%;
-            width: 80%;
-        }
-
-        #countries option {
-            background: indianred !important;
-        }
-
-        .tooltip {
+        body {
             display: flex;
             flex-direction: column;
-            position: absolute; /*不可缺少*/
-            line-height: 1;
-            font-weight: bold;
-            padding: 12px;
-            background-color: #322d2d;
-            color: white;
-            border-radius: 2px;
-            text-align: center;
+        }
+        .header {
+            width: 100%;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .year-filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .year-filters label {
+            font-size: 14px;
+        }
+        .year-filters input[type=range] {
+            width: 140px;
+        }
+        .main-container {
+            flex: 1;
+            display: flex;
+            padding: 10px;
+            gap: 10px;
+        }
+        #globe {
+            flex: 2;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: rgba(192, 192, 192, 0.3);
+            position: relative;
+        }
+        .right-panel {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .panel {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: rgba(240, 128, 128, 0.05);
+        }
+        .panel h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .panel small {
+            font-size: 11px;
+            color: #666;
+        }
+        #genrePanel {
+            max-height: 150px;
+        }
+        #genreSelect {
+            width: 100%;
+            margin-top: 5px;
+            padding: 4px;
+        }
+        #directorBar, #movieBar {
+            height: 220px;
+        }
+        .tooltip {
+            position: absolute;
+            pointer-events: none;
+            padding: 8px 10px;
+            background: rgba(50, 45, 45, 0.9);
+            color: #fff;
+            border-radius: 4px;
+            font-size: 12px;
             opacity: 0;
         }
-
         .axis path,
         .axis line {
             fill: none;
             stroke: #000;
             shape-rendering: crispEdges;
         }
-
-        .bar {
-            fill: rgb(219, 112, 147);
+        .legend text {
+            font-size: 11px;
         }
-
-        .bar:hover {
-            fill: indianred;
-        }
-
-        .x.axis path {
-            display: none;
-        }
-
-        .legend {
-            font-family: 'Raleway', sans-serif;
-            fill: #333333;
-        }
-
-        .tt {
-            display: flex;
-            flex-direction: column;
-            position: absolute; /*不可缺少*/
-            line-height: 1;
-            font-weight: bold;
-            padding: 12px;
-            background-color: #322d2d;
-            color: white;
-            border-radius: 2px;
-            text-align: center;
-            opacity: 0;
-            letter-spacing: 2px
-        }
-
-        select, h4 {
-            display: inline;
-        }
-
-        select {
-            margin-left: 10px;
-        }
-
     </style>
 </head>
-
 <body>
-<div class="Filter">
-    <div class="matric">
-        <select id="matric" name="matric" class="selectpicker show-tick form-control"
-                data-width=400 data-live-search="false">
-            <option value=0>GDP growth (annual %)</option>
-            <option value=1>GDP (current US$)</option>
-            <option value=2>Internet users (per 100 people)</option>
-            <option value=3>Rural population</option>
-            <option value=4>Population- female (% of total)</option>
-            <option value=5>Population growth (annual %)</option>
-            <option value=6>Population- total</option>
-            <option value=7>GDP per capita growth (annual %)</option>
-            <option value=8>GDP per capita (current US$)</option>
-            <option value=9>Labor force- total</option>
-            <option value=10>Labor force- female (% of total labor force)</option>
-            <option value=11>Armed forces personnel (% of total labor force)</option>
-            <option value=12>Surface area (sq. km)</option>
-            <option value=13>Population density (people per sq. km of land area)</option>
-            <option value=14>Arable land (% of land area)</option>
-            <option value=15>Unemployment- total (% of total labor force) (modeled ILO estimate)</option>
-            <option value=16>Unemployment- female (% of female labor force) (modeled ILO estimate)</option>
-        </select>
+<div class="header">
+    <div class="header-title">
+        Movie Visualization – Genre × Country × Directors
     </div>
-    <div class="yeardrag">
-        <h4>2010</h4>
-        <input type="range" min="4" max="8" step="1" value="4" id="limit"
-               style="width:50%"/>
-        <h4>2014</h4>
-
-    </div>
-    <div class="countryselect" id="countryselect">
-        <select id="countries" name="countries" class="selectpicker show-tick form-control"
-                title="Select Country Code for Radar Chart Display"
-                data-width=400 multiple data-max-options="6" data-selected-text-format="count" data-live-search="true">
-            {% for code in CountryCode %}
-                <option value={{ code }} id={{ code }}>{{ code }}</option>
-            {% endfor %}
-        </select>
+    <div class="year-filters">
+        <label>Year from <span id="yearMinLabel"></span></label>
+        <input type="range" id="yearMinSlider">
+        <label>to <span id="yearMaxLabel"></span></label>
+        <input type="range" id="yearMaxSlider">
     </div>
 </div>
 
+<div class="main-container">
+    <div id="globe"></div>
 
-<div id="globe"></div>
+    <div class="right-panel">
+        <div class="panel" id="genrePanel">
+            <h3>1️⃣ Main Genre Filter</h3>
+            <small>Chọn thể loại chính. Tất cả biểu đồ sẽ lọc theo thể loại & khoảng năm.</small>
+            <select id="genreSelect">
+                <option value="">All genres</option>
+            </select>
+        </div>
 
+        <div class="panel">
+            <h3>2️⃣ Versatile Bar Chart – Directors (selected country)</h3>
+            <small>Số phim thuộc thể loại & khoảng năm đã chọn, cho từng đạo diễn của quốc gia đang click.</small>
+            <div id="directorBar"></div>
+        </div>
 
-<div class="rectmap">
-    <div class="radarChart"></div>
-    <div id="rect"></div>
-</div>
-<div class="matricsform">
-    <form name="MatricForm" id="MatricForm">
-        <input type="checkbox" class="checkclass" name="single" id="type1" style="margin-bottom:0px"/> GDP
-        growth
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type2" style="margin-bottom:0px"/> GDP
-        (current US$)
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type3" style="margin-bottom:0px"/> Internet
-        users
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type4" checked style="margin-bottom:0px"/> Rural
-        population
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type5" checked style="margin-bottom:0px"/>
-        Population-
-        female
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type1" checked style="margin-bottom:0px"/>
-        Population
-        growth
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type2" style="margin-bottom:0px"/> Population-
-        total
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type3" style="margin-bottom:0px"/> GDP
-        per
-        capita growth
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type4" style="margin-bottom:0px"/> GDP
-        per capita
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type5" style="margin-bottom:0px"/> Labor
-        force- total
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type1" style="margin-bottom:0px"/> Labor
-        force- female
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type2" style="margin-bottom:0px"/> Armed
-        forces personnel
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type3" style="margin-bottom:0px"/> Surface
-        area
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type4" style="margin-bottom:0px"/> Population
-        density
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type5" style="margin-bottom:0px"/> Arable
-        land
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type4" style="margin-bottom:0px"/> Unemployment-
-        total
-        </br>
-        <input type="checkbox" class="checkclass" name="single" id="type5" style="margin-bottom:0px"/> Unemployment-
-        female
-        </br>
-    </form>
+        <div class="panel">
+            <h3>3️⃣ Top Director – Movies (Budget vs Total Gross)</h3>
+            <small>1–5 phim của đạo diễn có số phim cao nhất trong quốc gia & thể loại & khoảng năm đã chọn.</small>
+            <div id="movieBar"></div>
+        </div>
+    </div>
 </div>
 
-</body>
+<div class="tooltip" id="tooltip"></div>
 
 <script>
-    var data = {{ geojson|tojson }};
-    var min_rating = {{ min_rating }};
-    var max_rating = {{ max_rating }};
-    var countries_with_data = {{ countries|tojson }};
+    // ======= Data from backend (GeoJSON + year bounds) =======
+    var worldData = {{ world_geojson|tojson }};
+    var YEAR_MIN = {{ year_min }};
+    var YEAR_MAX = {{ year_max }};
 
-    // Color như cũ
-    var a = d3.rgb(251, 193, 190);
-    var b = d3.rgb(150, 1, 122);
-    var color = d3.interpolate(a, b);
+    // ======= State =======
+    var currentGenre = "";
+    var currentYearMin = YEAR_MIN;
+    var currentYearMax = YEAR_MAX;
+    var summaryIndex = {};  // countryName -> summary
+    var currentCountry = null;
+    var currentMinRating = null;
+    var currentMaxRating = null;
 
-    // Tooltip
-    var tooltip = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0)
-        .style("position", "absolute")
-        .style("background", "rgba(50,45,45,0.9)")
-        .style("color", "white")
-        .style("padding", "12px")
-        .style("border-radius", "6px")
-        .style("pointer-events", "none")
-        .style("font-family", "Raleway");
+    var tooltip = d3.select("#tooltip");
 
-    function GlobeMap() {
-        d3.select("#globe svg").remove(); // xóa cũ
+    // ======= Color for heatmap =======
+    function getColorScale(t) {
+        var a = d3.rgb(251, 193, 190);  // light
+        var b = d3.rgb(150, 1, 122);    // dark
+        return d3.interpolate(a, b)(t);
+    }
 
-        var width = document.getElementById("globe").clientWidth;
-        var height = document.getElementById("globe").clientHeight;
+    // ======= Initialize genre & year filters via API =======
+    function initFilters() {
+        // Initialize year sliders
+        var minSlider = document.getElementById("yearMinSlider");
+        var maxSlider = document.getElementById("yearMaxSlider");
+        var minLabel = document.getElementById("yearMinLabel");
+        var maxLabel = document.getElementById("yearMaxLabel");
 
-        var svg = d3.select("#globe").append("svg")
-            .attr("width", "100%")
-            .attr("height", "100%");
+        minSlider.min = YEAR_MIN;
+        minSlider.max = YEAR_MAX;
+        maxSlider.min = YEAR_MIN;
+        maxSlider.max = YEAR_MAX;
+
+        minSlider.value = YEAR_MIN;
+        maxSlider.value = YEAR_MAX;
+        minLabel.textContent = YEAR_MIN;
+        maxLabel.textContent = YEAR_MAX;
+
+        minSlider.addEventListener("input", function() {
+            var v = parseInt(minSlider.value, 10);
+            if (v > parseInt(maxSlider.value, 10)) {
+                v = parseInt(maxSlider.value, 10);
+                minSlider.value = v;
+            }
+            currentYearMin = v;
+            minLabel.textContent = v;
+            loadSummary();
+        });
+
+        maxSlider.addEventListener("input", function() {
+            var v = parseInt(maxSlider.value, 10);
+            if (v < parseInt(minSlider.value, 10)) {
+                v = parseInt(minSlider.value, 10);
+                maxSlider.value = v;
+            }
+            currentYearMax = v;
+            maxLabel.textContent = v;
+            loadSummary();
+        });
+
+        // Fetch genres
+        fetch("/api/filters")
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                var select = document.getElementById("genreSelect");
+                data.genres.forEach(function(g) {
+                    var opt = document.createElement("option");
+                    opt.value = g;
+                    opt.textContent = g;
+                    select.appendChild(opt);
+                });
+            });
+
+        document.getElementById("genreSelect").addEventListener("change", function() {
+            currentGenre = this.value;
+            loadSummary();
+        });
+    }
+
+    // ======= Draw world map (once) =======
+    function drawWorldMap() {
+        d3.select("#globe").selectAll("*").remove();
+
+        var container = document.getElementById("globe");
+        var width = container.clientWidth;
+        var height = container.clientHeight || 500;
+
+        var svg = d3.select("#globe")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
 
         var projection = d3.geo.mercator()
             .scale(width * 0.15)
@@ -366,7 +254,7 @@
         var path = d3.geo.path().projection(projection);
 
         var countries = svg.selectAll("path.country")
-            .data(data.features)
+            .data(worldData.features)
             .enter()
             .append("path")
             .attr("class", "country")
@@ -374,77 +262,379 @@
             .style("stroke", "#fff")
             .style("stroke-width", 0.5)
             .style("fill", function(d) {
-                var r = d.properties.avgIMDbRating;
-                if (r === null) return "#e0e0e0";
-                var t = (r - min_rating) / (max_rating - min_rating);
-                return color(t);
+                return getCountryColor(d.properties.name);
             })
             .on("mouseover", function(d) {
-                d3.select(this).style("fill", "#ff69b4");
-                var rating = d.properties.avgIMDbRating;
-                var text = rating ? rating.toFixed(2) : "No movies";
-                tooltip.html("<strong>" + d.properties.name + "</strong><br>Avg IMDb Rating: <strong>" + text + "</strong>")
+                d3.select(this).style("stroke-width", 1.5);
+                var name = d.properties.name;
+                var info = summaryIndex[name];
+                var ratingText = "No data";
+                var details = "";
+                if (info) {
+                    ratingText = info.avg_rating.toFixed(2);
+                    details = "<br/>Movies: " + info.movie_count + "<br/>Directors: " + info.director_count;
+                }
+                tooltip
+                    .style("opacity", 0.95)
+                    .html("<strong>" + name + "</strong><br/>Avg Rating: " + ratingText + details)
                     .style("left", (d3.event.pageX + 15) + "px")
-                    .style("top", (d3.event.pageY - 10) + "px")
-                    .transition().duration(200).style("opacity", 0.95);
+                    .style("top", (d3.event.pageY - 10) + "px");
             })
-            .on("mouseout", function(d) {
-                d3.select(this).style("fill", function(d) {
-                    var r = d.properties.avgIMDbRating;
-                    if (r === null) return "#e0e0e0";
-                    var t = (r - min_rating) / (max_rating - min_rating);
-                    return color(t);
-                });
-                tooltip.transition().duration(500).style("opacity", 0);
+            .on("mousemove", function() {
+                tooltip
+                    .style("left", (d3.event.pageX + 15) + "px")
+                    .style("top", (d3.event.pageY - 10) + "px");
+            })
+            .on("mouseout", function() {
+                d3.select(this).style("stroke-width", 0.5);
+                tooltip.style("opacity", 0);
             })
             .on("click", function(d) {
-                if (!d.properties.avgIMDbRating) {
-                    alert("No movie data for " + d.properties.name);
-                    return;
-                }
-                // Tự động chọn vào dropdown nếu có
-                var select = document.getElementById("countries");
-                for (var i = 0; i < select.options.length; i++) {
-                    if (select.options[i].text === d.properties.name || 
-                        select.options[i].value === d.id) {
-                        select.options[i].selected = true;
-                        break;
-                    }
-                }
-                CountrySel = $("#countries").val() || [];
-                updateR();
-                updateRadarChart(radarChartOptions);
+                var countryName = d.properties.name;
+                currentCountry = countryName;
+                loadCountryDetail(countryName);
             });
 
         // Legend
-        var legend = svg.append("g").attr("transform", "translate(30,30)");
-        var gradient = svg.append("defs").append("linearGradient")
-            .attr("id", "grad")
-            .attr("x1", "0%").attr("x2", "100%");
-        gradient.append("stop").attr("offset", "0%").attr("stop-color", color(0));
-        gradient.append("stop").attr("offset", "100%").attr("stop-color", color(1));
+        var legendWidth = 200, legendHeight = 14;
+        var legend = svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", "translate(20, 20)");
+
+        var gradId = "ratingGrad";
+        var defs = svg.append("defs");
+        var gradient = defs.append("linearGradient")
+            .attr("id", gradId)
+            .attr("x1", "0%").attr("x2", "100%")
+            .attr("y1", "0%").attr("y2", "0%");
+
+        gradient.append("stop").attr("offset", "0%").attr("stop-color", getColorScale(0));
+        gradient.append("stop").attr("offset", "100%").attr("stop-color", getColorScale(1));
 
         legend.append("rect")
-            .attr("width", 220).attr("height", 20)
-            .style("fill", "url(#grad)")
+            .attr("x", 0)
+            .attr("y", 10)
+            .attr("width", legendWidth)
+            .attr("height", legendHeight)
+            .style("fill", "url(#" + gradId + ")")
             .style("stroke", "#999");
 
-        legend.append("text").attr("x", 0).attr("y", -5).text(min_rating.toFixed(1));
-        legend.append("text").attr("x", 220).attr("y", -5).attr("text-anchor", "end").text(max_rating.toFixed(1));
-        legend.append("text").attr("x", 110).attr("y", -10).attr("text-anchor", "middle")
-            .text("Average IMDb Rating").style("font-weight", "bold");
+        legend.append("text")
+            .attr("x", 0)
+            .attr("y", 8)
+            .text("Average IMDb Rating");
+
+        legend.append("text")
+            .attr("x", 0)
+            .attr("y", 10 + legendHeight + 12)
+            .text("Low");
+
+        legend.append("text")
+            .attr("x", legendWidth)
+            .attr("y", 10 + legendHeight + 12)
+            .attr("text-anchor", "end")
+            .text("High");
     }
 
-    // Gọi lần đầu
-    GlobeMap();
+    function getCountryColor(countryName) {
+        var info = summaryIndex[countryName];
+        if (!info || currentMinRating === null || currentMaxRating === null || currentMinRating === currentMaxRating) {
+            return "#e0e0e0";
+        }
+        var t = (info.avg_rating - currentMinRating) / (currentMaxRating - currentMinRating);
+        t = Math.max(0, Math.min(1, t));
+        return getColorScale(t);
+    }
 
-    // Responsive
-    window.addEventListener("resize", function() {
-        setTimeout(GlobeMap, 100);
+    // ======= Reload colors when summary changes =======
+    function updateMapColors() {
+        d3.select("#globe").selectAll("path.country")
+            .transition()
+            .duration(600)
+            .style("fill", function(d) {
+                return getCountryColor(d.properties.name);
+            });
+    }
+
+    // ======= Load summary for heatmap =======
+    function loadSummary() {
+        var params = [];
+        if (currentGenre) {
+            params.push("genre=" + encodeURIComponent(currentGenre));
+        }
+        params.push("start_year=" + encodeURIComponent(currentYearMin));
+        params.push("end_year=" + encodeURIComponent(currentYearMax));
+
+        fetch("/api/summary?" + params.join("&"))
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                summaryIndex = {};
+                data.countries.forEach(function(c) {
+                    summaryIndex[c.country] = c;
+                });
+                currentMinRating = data.min_rating;
+                currentMaxRating = data.max_rating;
+                updateMapColors();
+                // Khi đổi filter mà chưa click country, clear charts
+                if (!currentCountry) {
+                    drawDirectorBar([]);
+                    drawMovieBar(null, []);
+                } else {
+                    // reload detail cho country đang chọn
+                    loadCountryDetail(currentCountry);
+                }
+            });
+    }
+
+    // ======= Load detail for one country =======
+    function loadCountryDetail(countryName) {
+        var params = [];
+        params.push("country=" + encodeURIComponent(countryName));
+        if (currentGenre) {
+            params.push("genre=" + encodeURIComponent(currentGenre));
+        }
+        params.push("start_year=" + encodeURIComponent(currentYearMin));
+        params.push("end_year=" + encodeURIComponent(currentYearMax));
+
+        fetch("/api/country_detail?" + params.join("&"))
+            .then(function(res) { return res.json(); })
+            .then(function(info) {
+                var directors = info.directors || [];
+                var topDirector = info.top_director || null;
+                drawDirectorBar(directors, countryName);
+                if (topDirector) {
+                    drawMovieBar(topDirector.name, topDirector.movies || []);
+                } else {
+                    drawMovieBar(null, []);
+                }
+            });
+    }
+
+    // ======= Bar chart 1: versatile directors =======
+    function drawDirectorBar(directors, countryName) {
+        var container = d3.select("#directorBar");
+        container.selectAll("*").remove();
+
+        var width = document.getElementById("directorBar").clientWidth || 350;
+        var height = document.getElementById("directorBar").clientHeight || 220;
+
+        var svg = container.append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        if (!directors || directors.length === 0) {
+            svg.append("text")
+                .attr("x", width / 2)
+                .attr("y", height / 2)
+                .attr("text-anchor", "middle")
+                .style("font-size", "13px")
+                .text(countryName ? ("No data for " + countryName) : "No country selected");
+            return;
+        }
+
+        var margin = {top: 20, right: 30, bottom: 70, left: 50};
+        var innerW = width - margin.left - margin.right;
+        var innerH = height - margin.top - margin.bottom;
+
+        var g = svg.append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var x = d3.scale.ordinal()
+            .domain(directors.map(function(d) { return d.director; }))
+            .rangeRoundBands([0, innerW], 0.2);
+
+        var y = d3.scale.linear()
+            .domain([0, d3.max(directors, function(d) { return d.movie_count; }) || 1])
+            .range([innerH, 0]);
+
+        g.selectAll(".bar")
+            .data(directors)
+            .enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("x", function(d) { return x(d.director); })
+            .attr("y", function(d) { return y(d.movie_count); })
+            .attr("width", x.rangeBand())
+            .attr("height", function(d) { return innerH - y(d.movie_count); })
+            .attr("fill", "rgb(219,112,147)")
+            .on("mouseover", function(d) {
+                d3.select(this).attr("fill", "indianred");
+                tooltip
+                    .style("opacity", 0.95)
+                    .html("<strong>" + d.director + "</strong><br/>Movies: " + d.movie_count)
+                    .style("left", (d3.event.pageX + 15) + "px")
+                    .style("top", (d3.event.pageY - 10) + "px");
+            })
+            .on("mouseout", function() {
+                d3.select(this).attr("fill", "rgb(219,112,147)");
+                tooltip.style("opacity", 0);
+            });
+
+        g.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + innerH + ")")
+            .call(d3.svg.axis().scale(x).orient("bottom"))
+            .selectAll("text")
+            .style("font-size", "10px")
+            .style("text-anchor", "end")
+            .attr("dx", "-0.5em")
+            .attr("dy", "0.15em")
+            .attr("transform", "rotate(-35)");
+
+        g.append("g")
+            .attr("class", "y axis")
+            .call(d3.svg.axis().scale(y).orient("left").ticks(5));
+
+        if (countryName) {
+            svg.append("text")
+                .attr("x", width / 2)
+                .attr("y", 14)
+                .attr("text-anchor", "middle")
+                .style("font-size", "13px")
+                .text("Directors in " + countryName);
+        }
+    }
+
+    // ======= Bar chart 2: grouped bars for movies =======
+    function drawMovieBar(directorName, movies) {
+        var container = d3.select("#movieBar");
+        container.selectAll("*").remove();
+
+        var width = document.getElementById("movieBar").clientWidth || 350;
+        var height = document.getElementById("movieBar").clientHeight || 220;
+
+        var svg = container.append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        if (!directorName || !movies || movies.length === 0) {
+            svg.append("text")
+                .attr("x", width / 2)
+                .attr("y", height / 2)
+                .attr("text-anchor", "middle")
+                .style("font-size", "13px")
+                .text("No top-director data");
+            return;
+        }
+
+        var margin = {top: 24, right: 20, bottom: 70, left: 60};
+        var innerW = width - margin.left - margin.right;
+        var innerH = height - margin.top - margin.bottom;
+
+        var g = svg.append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var x0 = d3.scale.ordinal()
+            .domain(movies.map(function(d) { return d.title; }))
+            .rangeRoundBands([0, innerW], 0.2);
+
+        var x1 = d3.scale.ordinal()
+            .domain(["total_gross", "total_budget"])
+            .rangeRoundBands([0, x0.rangeBand()], 0.1);
+
+        var y = d3.scale.linear()
+            .domain([0, d3.max(movies, function(d) {
+                return Math.max(d.total_gross || 0, d.total_budget || 0);
+            }) || 1])
+            .range([innerH, 0]);
+
+        var color = d3.scale.ordinal()
+            .domain(["total_gross", "total_budget"])
+            .range(["#ff6666", "#6699ff"]);
+
+        // grouped bars
+        var movieGroups = g.selectAll(".movieGroup")
+            .data(movies)
+            .enter()
+            .append("g")
+            .attr("class", "movieGroup")
+            .attr("transform", function(d) { return "translate(" + x0(d.title) + ",0)"; });
+
+        movieGroups.selectAll("rect")
+            .data(function(d) {
+                return [
+                    {key: "total_gross", value: d.total_gross || 0},
+                    {key: "total_budget", value: d.total_budget || 0}
+                ];
+            })
+            .enter()
+            .append("rect")
+            .attr("x", function(d) { return x1(d.key); })
+            .attr("y", function(d) { return y(d.value); })
+            .attr("width", x1.rangeBand())
+            .attr("height", function(d) { return innerH - y(d.value); })
+            .style("fill", function(d) { return color(d.key); })
+            .on("mouseover", function(d) {
+                var label = d.key === "total_gross" ? "Total Gross" : "Total Budget";
+                tooltip
+                    .style("opacity", 0.95)
+                    .html(label + ": " + d.value.toLocaleString())
+                    .style("left", (d3.event.pageX + 15) + "px")
+                    .style("top", (d3.event.pageY - 10) + "px");
+            })
+            .on("mouseout", function() {
+                tooltip.style("opacity", 0);
+            });
+
+        // axes
+        g.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + innerH + ")")
+            .call(d3.svg.axis().scale(x0).orient("bottom"))
+            .selectAll("text")
+            .style("font-size", "10px")
+            .style("text-anchor", "end")
+            .attr("dx", "-0.5em")
+            .attr("dy", "0.15em")
+            .attr("transform", "rotate(-35)");
+
+        g.append("g")
+            .attr("class", "y axis")
+            .call(d3.svg.axis().scale(y).orient("left").ticks(5));
+
+        // legend
+        var legend = g.append("g")
+            .attr("class", "legend")
+            .attr("transform", "translate(" + (innerW - 120) + ",0)");
+
+        var items = ["Total Gross", "Total Budget"];
+        items.forEach(function(label, i) {
+            var key = i === 0 ? "total_gross" : "total_budget";
+            var row = legend.append("g").attr("transform", "translate(0," + (i * 16) + ")");
+            row.append("rect")
+                .attr("width", 10)
+                .attr("height", 10)
+                .style("fill", color(key));
+            row.append("text")
+                .attr("x", 14)
+                .attr("y", 9)
+                .text(label)
+                .style("font-size", "11px");
+        });
+
+        // title
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", 16)
+            .attr("text-anchor", "middle")
+            .style("font-size", "13px")
+            .style("font-weight", "600")
+            .text("Top director: " + directorName);
+    }
+
+    // ======= Init =======
+    document.addEventListener("DOMContentLoaded", function() {
+        initFilters();
+        drawWorldMap();
+        loadSummary();
+        window.addEventListener("resize", function() {
+            drawWorldMap();
+            updateMapColors();
+            if (currentCountry) {
+                loadCountryDetail(currentCountry);
+            }
+        });
     });
-
-    // Không cần updateM() nữa vì không đổi metric/năm
-    function updateM() { GlobeMap(); }
 </script>
-
+</body>
 </html>
