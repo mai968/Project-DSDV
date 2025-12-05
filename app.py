@@ -14,10 +14,10 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     # 1. Đọc dữ liệu phim
-    df = pd.read_csv("data.csv")  # file của bạn
+    df = pd.read_csv("movie.csv")  # file của bạn
 
     # 2. Tính trung bình IMDbRating theo Country (dùng Country làm key)
-    avg_rating = df.groupby('Country')['IMDbRating'].mean().round(2)
+    avg_rating = df.groupby('Country')['Rating'].mean().round(2)
     rating_dict = avg_rating.to_dict()
 
     # 3. Đọc GeoJSON thế giới
@@ -37,6 +37,7 @@ def index():
             "United States": "USA",
             "United States of America": "USA",
             "America": "USA",
+            "United Kingdom": "UK",
         }
         lookup_name = name_mapping.get(country_name, country_name)
 
