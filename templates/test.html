@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Movie World Dashboard | Genre, Country & Directors</title>
-    <!-- D3 v3 -->
+    <title>Movie World Dashboard</title>
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <style>
         * {
@@ -14,35 +13,39 @@
         html, body {
             height: 100%;
             font-family: 'Raleway', Arial, sans-serif;
-            background-color: #ffffff;
-            color: #111;
         }
         body {
             display: flex;
             flex-direction: column;
+            background-color: #fff;
+            color: #111;
         }
         .header {
-            width: 100%;
-            padding: 10px 20px;
+            padding: 10px 18px;
             border-bottom: 1px solid #ddd;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
         .header-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
         }
-        .year-filters {
+        .header-sub {
+            font-size: 12px;
+            color: #666;
+        }
+        .filters {
             display: flex;
             align-items: center;
             gap: 10px;
+            font-size: 13px;
         }
-        .year-filters label {
-            font-size: 14px;
+        .filters select, .filters input[type=range] {
+            font-size: 13px;
         }
-        .year-filters input[type=range] {
-            width: 140px;
+        .filters input[type=range] {
+            width: 120px;
         }
         .main-container {
             flex: 1;
@@ -54,7 +57,7 @@
             flex: 2;
             border: 1px solid #ddd;
             border-radius: 10px;
-            background-color: rgba(192, 192, 192, 0.3);
+            background-color: rgba(192,192,192,0.25);
             position: relative;
         }
         .right-panel {
@@ -66,60 +69,66 @@
         .panel {
             border: 1px solid #ddd;
             border-radius: 10px;
-            padding: 10px;
-            background-color: rgba(240, 128, 128, 0.05);
+            padding: 8px 10px;
+            background-color: rgba(240,128,128,0.03);
         }
         .panel h3 {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .panel small {
             font-size: 11px;
             color: #666;
         }
-        #genrePanel {
-            max-height: 150px;
+        #directorBar {
+            height: 240px;
         }
-        #genreSelect {
-            width: 100%;
-            margin-top: 5px;
-            padding: 4px;
-        }
-        #directorBar, #movieBar {
-            height: 220px;
+        #movieScatter {
+            min-height: 260px;
         }
         .tooltip {
             position: absolute;
             pointer-events: none;
-            padding: 8px 10px;
-            background: rgba(50, 45, 45, 0.9);
+            padding: 6px 10px;
+            background: rgba(50,45,45,0.9);
             color: #fff;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11px;
             opacity: 0;
         }
-        .axis path,
-        .axis line {
-            fill: none;
-            stroke: #000;
-            shape-rendering: crispEdges;
+        .scatter-panel {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 4px 4px 2px 4px;
+            margin-top: 8px;
+            background-color: #fff;
         }
-        .legend text {
-            font-size: 11px;
+        .scatter-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin: 2px 4px 0 4px;
         }
     </style>
 </head>
 <body>
+
 <div class="header">
-    <div class="header-title">
-        Movie Visualization – Genre × Country × Directors
+    <div>
+        <div class="header-title">Movie Visualization – Genre × Country × Directors</div>
+        <div class="header-sub">Heatmap (Rating) · Top Directors (bar ngang) · Movies (scatter: Budget vs Gross, màu Rating)</div>
     </div>
-    <div class="year-filters">
-        <label>Year from <span id="yearMinLabel"></span></label>
+    <div class="filters">
+        <span>Year:</span>
+        <span id="yearMinLabel"></span>
         <input type="range" id="yearMinSlider">
-        <label>to <span id="yearMaxLabel"></span></label>
+        <span>to</span>
+        <span id="yearMaxLabel"></span>
         <input type="range" id="yearMaxSlider">
+        <span>| Genre:</span>
+        <select id="genreSelect">
+            <option value="">All</option>
+        </select>
     </div>
 </div>
 
@@ -127,24 +136,18 @@
     <div id="globe"></div>
 
     <div class="right-panel">
-        <div class="panel" id="genrePanel">
-            <h3>1️⃣ Main Genre Filter</h3>
-            <small>Chọn thể loại chính. Tất cả biểu đồ sẽ lọc theo thể loại & khoảng năm.</small>
-            <select id="genreSelect">
-                <option value="">All genres</option>
-            </select>
-        </div>
-
         <div class="panel">
-            <h3>2️⃣ Versatile Bar Chart – Directors (selected country)</h3>
-            <small>Số phim thuộc thể loại & khoảng năm đã chọn, cho từng đạo diễn của quốc gia đang click.</small>
+            <h3>1️⃣ Top directors by number of movies (bar ngang)</h3>
+            <small>Đếm số phim theo từng đạo diễn trong quốc gia & thể loại & khoảng năm đang chọn.</small>
             <div id="directorBar"></div>
         </div>
 
         <div class="panel">
-            <h3>3️⃣ Top Director – Movies (Budget vs Total Gross)</h3>
-            <small>1–5 phim của đạo diễn có số phim cao nhất trong quốc gia & thể loại & khoảng năm đã chọn.</small>
-            <div id="movieBar"></div>
+            <h3>2️⃣ Top director(s) movies – Scatter (Budget vs Gross, màu = Rating)</h3>
+            <small>
+                Nếu có nhiều đạo diễn đồng top (số phim bằng nhau), mỗi đạo diễn sẽ có một scatter riêng.
+            </small>
+            <div id="movieScatter"></div>
         </div>
     </div>
 </div>
@@ -152,32 +155,42 @@
 <div class="tooltip" id="tooltip"></div>
 
 <script>
-    // ======= Data from backend (GeoJSON + year bounds) =======
+    // ====== Data từ backend (geojson + years) ======
     var worldData = {{ world_geojson|tojson }};
     var YEAR_MIN = {{ year_min }};
     var YEAR_MAX = {{ year_max }};
 
-    // ======= State =======
+    // ====== State ======
     var currentGenre = "";
     var currentYearMin = YEAR_MIN;
     var currentYearMax = YEAR_MAX;
-    var summaryIndex = {};  // countryName -> summary
     var currentCountry = null;
+
+    var summaryIndex = {};    // countryName -> {avg_rating, movie_count, director_count}
     var currentMinRating = null;
     var currentMaxRating = null;
 
     var tooltip = d3.select("#tooltip");
 
-    // ======= Color for heatmap =======
-    function getColorScale(t) {
-        var a = d3.rgb(251, 193, 190);  // light
-        var b = d3.rgb(150, 1, 122);    // dark
+    // ====== Color cho heatmap ======
+    function heatColor(t) {
+        var a = d3.rgb(251,193,190); // light
+        var b = d3.rgb(150,1,122);   // dark
         return d3.interpolate(a, b)(t);
     }
 
-    // ======= Initialize genre & year filters via API =======
+    function getCountryColor(name) {
+        var info = summaryIndex[name];
+        if (!info || currentMinRating === null || currentMaxRating === null || currentMinRating === currentMaxRating) {
+            return "#e0e0e0";
+        }
+        var t = (info.avg_rating - currentMinRating) / (currentMaxRating - currentMinRating);
+        t = Math.max(0, Math.min(1, t));
+        return heatColor(t);
+    }
+
+    // ====== Init filters (genre + year sliders) ======
     function initFilters() {
-        // Initialize year sliders
         var minSlider = document.getElementById("yearMinSlider");
         var maxSlider = document.getElementById("yearMaxSlider");
         var minLabel = document.getElementById("yearMinLabel");
@@ -215,12 +228,12 @@
             loadSummary();
         });
 
-        // Fetch genres
+        // load genre list
         fetch("/api/filters")
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
+            .then(function(res){ return res.json(); })
+            .then(function(data){
                 var select = document.getElementById("genreSelect");
-                data.genres.forEach(function(g) {
+                data.genres.forEach(function(g){
                     var opt = document.createElement("option");
                     opt.value = g;
                     opt.textContent = g;
@@ -228,19 +241,19 @@
                 });
             });
 
-        document.getElementById("genreSelect").addEventListener("change", function() {
+        document.getElementById("genreSelect").addEventListener("change", function(){
             currentGenre = this.value;
             loadSummary();
         });
     }
 
-    // ======= Draw world map (once) =======
+    // ====== Vẽ map thế giới (1 lần) ======
     function drawWorldMap() {
         d3.select("#globe").selectAll("*").remove();
 
         var container = document.getElementById("globe");
-        var width = container.clientWidth;
-        var height = container.clientHeight || 500;
+        var width = container.clientWidth || 500;
+        var height = container.clientHeight || 400;
 
         var svg = d3.select("#globe")
             .append("svg")
@@ -253,7 +266,7 @@
 
         var path = d3.geo.path().projection(projection);
 
-        var countries = svg.selectAll("path.country")
+        svg.selectAll("path.country")
             .data(worldData.features)
             .enter()
             .append("path")
@@ -308,8 +321,8 @@
             .attr("x1", "0%").attr("x2", "100%")
             .attr("y1", "0%").attr("y2", "0%");
 
-        gradient.append("stop").attr("offset", "0%").attr("stop-color", getColorScale(0));
-        gradient.append("stop").attr("offset", "100%").attr("stop-color", getColorScale(1));
+        gradient.append("stop").attr("offset", "0%").attr("stop-color", heatColor(0));
+        gradient.append("stop").attr("offset", "100%").attr("stop-color", heatColor(1));
 
         legend.append("rect")
             .attr("x", 0)
@@ -336,27 +349,15 @@
             .text("High");
     }
 
-    function getCountryColor(countryName) {
-        var info = summaryIndex[countryName];
-        if (!info || currentMinRating === null || currentMaxRating === null || currentMinRating === currentMaxRating) {
-            return "#e0e0e0";
-        }
-        var t = (info.avg_rating - currentMinRating) / (currentMaxRating - currentMinRating);
-        t = Math.max(0, Math.min(1, t));
-        return getColorScale(t);
-    }
-
-    // ======= Reload colors when summary changes =======
     function updateMapColors() {
         d3.select("#globe").selectAll("path.country")
-            .transition()
-            .duration(600)
-            .style("fill", function(d) {
+            .transition().duration(600)
+            .style("fill", function(d){
                 return getCountryColor(d.properties.name);
             });
     }
 
-    // ======= Load summary for heatmap =======
+    // ====== Load summary cho heatmap ======
     function loadSummary() {
         var params = [];
         if (currentGenre) {
@@ -366,27 +367,27 @@
         params.push("end_year=" + encodeURIComponent(currentYearMax));
 
         fetch("/api/summary?" + params.join("&"))
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
+            .then(function(res){ return res.json(); })
+            .then(function(data){
                 summaryIndex = {};
-                data.countries.forEach(function(c) {
+                data.countries.forEach(function(c){
                     summaryIndex[c.country] = c;
                 });
                 currentMinRating = data.min_rating;
                 currentMaxRating = data.max_rating;
+
                 updateMapColors();
-                // Khi đổi filter mà chưa click country, clear charts
+
                 if (!currentCountry) {
-                    drawDirectorBar([]);
-                    drawMovieBar(null, []);
+                    drawDirectorBarHorizontal([], null);
+                    drawMovieScatter([]);
                 } else {
-                    // reload detail cho country đang chọn
                     loadCountryDetail(currentCountry);
                 }
             });
     }
 
-    // ======= Load detail for one country =======
+    // ====== Load chi tiết 1 country ======
     function loadCountryDetail(countryName) {
         var params = [];
         params.push("country=" + encodeURIComponent(countryName));
@@ -397,26 +398,22 @@
         params.push("end_year=" + encodeURIComponent(currentYearMax));
 
         fetch("/api/country_detail?" + params.join("&"))
-            .then(function(res) { return res.json(); })
-            .then(function(info) {
+            .then(function(res){ return res.json(); })
+            .then(function(info){
                 var directors = info.directors || [];
-                var topDirector = info.top_director || null;
-                drawDirectorBar(directors, countryName);
-                if (topDirector) {
-                    drawMovieBar(topDirector.name, topDirector.movies || []);
-                } else {
-                    drawMovieBar(null, []);
-                }
+                var topDirectors = info.top_directors || [];
+                drawDirectorBarHorizontal(directors, countryName);
+                drawMovieScatter(topDirectors);
             });
     }
 
-    // ======= Bar chart 1: versatile directors =======
-    function drawDirectorBar(directors, countryName) {
+    // ====== Bar ngang: top directors by movie_count ======
+    function drawDirectorBarHorizontal(directors, countryName) {
         var container = d3.select("#directorBar");
         container.selectAll("*").remove();
 
-        var width = document.getElementById("directorBar").clientWidth || 350;
-        var height = document.getElementById("directorBar").clientHeight || 220;
+        var width = document.getElementById("directorBar").clientWidth || 360;
+        var height = document.getElementById("directorBar").clientHeight || 240;
 
         var svg = container.append("svg")
             .attr("width", width)
@@ -424,210 +421,273 @@
 
         if (!directors || directors.length === 0) {
             svg.append("text")
-                .attr("x", width / 2)
-                .attr("y", height / 2)
+                .attr("x", width/2)
+                .attr("y", height/2)
                 .attr("text-anchor", "middle")
-                .style("font-size", "13px")
-                .text(countryName ? ("No data for " + countryName) : "No country selected");
+                .style("font-size", "12px")
+                .text(countryName ? ("No data for " + countryName) : "Click a country on the map.");
             return;
         }
 
-        var margin = {top: 20, right: 30, bottom: 70, left: 50};
+        var margin = {top: 20, right: 20, bottom: 30, left: 120};
         var innerW = width - margin.left - margin.right;
         var innerH = height - margin.top - margin.bottom;
 
         var g = svg.append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        var x = d3.scale.ordinal()
-            .domain(directors.map(function(d) { return d.director; }))
-            .rangeRoundBands([0, innerW], 0.2);
+        var maxCount = d3.max(directors, function(d){ return d.movie_count; }) || 1;
 
-        var y = d3.scale.linear()
-            .domain([0, d3.max(directors, function(d) { return d.movie_count; }) || 1])
-            .range([innerH, 0]);
+        var x = d3.scale.linear()
+            .domain([0, maxCount * 1.1])
+            .range([0, innerW]);
 
+        var y = d3.scale.ordinal()
+            .domain(directors.map(function(d){ return d.director; }))
+            .rangeRoundBands([0, innerH], 0.15);
+
+        // bars
         g.selectAll(".bar")
             .data(directors)
             .enter()
             .append("rect")
             .attr("class", "bar")
-            .attr("x", function(d) { return x(d.director); })
-            .attr("y", function(d) { return y(d.movie_count); })
-            .attr("width", x.rangeBand())
-            .attr("height", function(d) { return innerH - y(d.movie_count); })
-            .attr("fill", "rgb(219,112,147)")
-            .on("mouseover", function(d) {
-                d3.select(this).attr("fill", "indianred");
+            .attr("y", function(d){ return y(d.director); })
+            .attr("x", 0)
+            .attr("height", y.rangeBand())
+            .attr("width", function(d){ return x(d.movie_count); })
+            .style("fill", "rgb(219,112,147)")
+            .on("mouseover", function(d){
+                d3.select(this).style("fill", "indianred");
                 tooltip
                     .style("opacity", 0.95)
                     .html("<strong>" + d.director + "</strong><br/>Movies: " + d.movie_count)
                     .style("left", (d3.event.pageX + 15) + "px")
                     .style("top", (d3.event.pageY - 10) + "px");
             })
-            .on("mouseout", function() {
-                d3.select(this).attr("fill", "rgb(219,112,147)");
+            .on("mouseout", function(){
+                d3.select(this).style("fill", "rgb(219,112,147)");
                 tooltip.style("opacity", 0);
             });
+
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+            .ticks(5)
+            .tickFormat(function(d){ return d; });
+
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
 
         g.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0," + innerH + ")")
-            .call(d3.svg.axis().scale(x).orient("bottom"))
-            .selectAll("text")
-            .style("font-size", "10px")
-            .style("text-anchor", "end")
-            .attr("dx", "-0.5em")
-            .attr("dy", "0.15em")
-            .attr("transform", "rotate(-35)");
+            .call(xAxis);
 
         g.append("g")
             .attr("class", "y axis")
-            .call(d3.svg.axis().scale(y).orient("left").ticks(5));
+            .call(yAxis)
+            .selectAll("text")
+            .style("font-size", "11px");
 
-        if (countryName) {
-            svg.append("text")
-                .attr("x", width / 2)
-                .attr("y", 14)
-                .attr("text-anchor", "middle")
-                .style("font-size", "13px")
-                .text("Directors in " + countryName);
-        }
+        svg.append("text")
+            .attr("x", width/2)
+            .attr("y", 14)
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .text("Top directors in " + countryName);
     }
 
-    // ======= Bar chart 2: grouped bars for movies =======
-    function drawMovieBar(directorName, movies) {
-        var container = d3.select("#movieBar");
+    // ====== Scatter: movies của top director(s) (có xử lý đồng top) ======
+    function drawMovieScatter(topDirectors) {
+        var container = d3.select("#movieScatter");
         container.selectAll("*").remove();
 
-        var width = document.getElementById("movieBar").clientWidth || 350;
-        var height = document.getElementById("movieBar").clientHeight || 220;
+        var elem = document.getElementById("movieScatter");
+        var width = elem.clientWidth || 360;
+        var heightPer = 260; // chiều cao cho mỗi scatter-panel (bao gồm margin)
 
-        var svg = container.append("svg")
-            .attr("width", width)
-            .attr("height", height);
-
-        if (!directorName || !movies || movies.length === 0) {
+        if (!topDirectors || topDirectors.length === 0) {
+            var svg = container.append("svg")
+                .attr("width", width)
+                .attr("height", 80);
             svg.append("text")
-                .attr("x", width / 2)
-                .attr("y", height / 2)
+                .attr("x", width/2)
+                .attr("y", 40)
                 .attr("text-anchor", "middle")
-                .style("font-size", "13px")
-                .text("No top-director data");
+                .style("font-size", "12px")
+                .text("No top-director data. Click a country with movie data.");
             return;
         }
 
-        var margin = {top: 24, right: 20, bottom: 70, left: 60};
+        // Gộp tất cả movies để tính chung domain scale
+        var allMovies = [];
+        topDirectors.forEach(function(td){
+            (td.movies || []).forEach(function(m){
+                allMovies.push(m);
+            });
+        });
+        if (allMovies.length === 0) {
+            var svg2 = container.append("svg")
+                .attr("width", width)
+                .attr("height", 80);
+            svg2.append("text")
+                .attr("x", width/2)
+                .attr("y", 40)
+                .attr("text-anchor", "middle")
+                .style("font-size", "12px")
+                .text("Top-directors have no movies data.");
+            return;
+        }
+
+        var maxBudget = d3.max(allMovies, function(m){ return m.budget || 0; }) || 1;
+        var maxGross  = d3.max(allMovies, function(m){ return m.gross || 0; }) || 1;
+
+        var minRating = d3.min(allMovies, function(m){ return m.rating != null ? m.rating : 10; }) || 0;
+        var maxRating = d3.max(allMovies, function(m){ return m.rating != null ? m.rating : 0; }) || 10;
+
+        // scale chung cho tất cả scatter
+        var margin = {top: 28, right: 40, bottom: 60, left: 70};
         var innerW = width - margin.left - margin.right;
-        var innerH = height - margin.top - margin.bottom;
+        var innerH = heightPer - margin.top - margin.bottom;
 
-        var g = svg.append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        var x0 = d3.scale.ordinal()
-            .domain(movies.map(function(d) { return d.title; }))
-            .rangeRoundBands([0, innerW], 0.2);
-
-        var x1 = d3.scale.ordinal()
-            .domain(["total_gross", "total_budget"])
-            .rangeRoundBands([0, x0.rangeBand()], 0.1);
+        var x = d3.scale.linear()
+            .domain([0, maxBudget * 1.1])
+            .range([0, innerW]);
 
         var y = d3.scale.linear()
-            .domain([0, d3.max(movies, function(d) {
-                return Math.max(d.total_gross || 0, d.total_budget || 0);
-            }) || 1])
+            .domain([0, maxGross * 1.1])
             .range([innerH, 0]);
 
-        var color = d3.scale.ordinal()
-            .domain(["total_gross", "total_budget"])
-            .range(["#ff6666", "#6699ff"]);
+        var color = d3.scale.linear()
+            .domain([minRating, maxRating])
+            .range(["#9ecae1", "#08306b"]);  // từ nhạt đến đậm
 
-        // grouped bars
-        var movieGroups = g.selectAll(".movieGroup")
-            .data(movies)
-            .enter()
-            .append("g")
-            .attr("class", "movieGroup")
-            .attr("transform", function(d) { return "translate(" + x0(d.title) + ",0)"; });
-
-        movieGroups.selectAll("rect")
-            .data(function(d) {
-                return [
-                    {key: "total_gross", value: d.total_gross || 0},
-                    {key: "total_budget", value: d.total_budget || 0}
-                ];
-            })
-            .enter()
-            .append("rect")
-            .attr("x", function(d) { return x1(d.key); })
-            .attr("y", function(d) { return y(d.value); })
-            .attr("width", x1.rangeBand())
-            .attr("height", function(d) { return innerH - y(d.value); })
-            .style("fill", function(d) { return color(d.key); })
-            .on("mouseover", function(d) {
-                var label = d.key === "total_gross" ? "Total Gross" : "Total Budget";
-                tooltip
-                    .style("opacity", 0.95)
-                    .html(label + ": " + d.value.toLocaleString())
-                    .style("left", (d3.event.pageX + 15) + "px")
-                    .style("top", (d3.event.pageY - 10) + "px");
-            })
-            .on("mouseout", function() {
-                tooltip.style("opacity", 0);
-            });
-
-        // axes
-        g.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + innerH + ")")
-            .call(d3.svg.axis().scale(x0).orient("bottom"))
-            .selectAll("text")
-            .style("font-size", "10px")
-            .style("text-anchor", "end")
-            .attr("dx", "-0.5em")
-            .attr("dy", "0.15em")
-            .attr("transform", "rotate(-35)");
-
-        g.append("g")
-            .attr("class", "y axis")
-            .call(d3.svg.axis().scale(y).orient("left").ticks(5));
-
-        // legend
-        var legend = g.append("g")
-            .attr("class", "legend")
-            .attr("transform", "translate(" + (innerW - 120) + ",0)");
-
-        var items = ["Total Gross", "Total Budget"];
-        items.forEach(function(label, i) {
-            var key = i === 0 ? "total_gross" : "total_budget";
-            var row = legend.append("g").attr("transform", "translate(0," + (i * 16) + ")");
-            row.append("rect")
-                .attr("width", 10)
-                .attr("height", 10)
-                .style("fill", color(key));
-            row.append("text")
-                .attr("x", 14)
-                .attr("y", 9)
-                .text(label)
-                .style("font-size", "11px");
+        // Profit scale (gross - budget)
+        var profits = allMovies.map(function(m){
+            return (m.gross || 0) - (m.budget || 0);
         });
 
-        // title
-        svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", 16)
-            .attr("text-anchor", "middle")
-            .style("font-size", "13px")
-            .style("font-weight", "600")
-            .text("Top director: " + directorName);
+        var minProfit = d3.min(profits);
+        var maxProfit = d3.max(profits);
+
+        // tránh trường hợp tất cả = 0
+        if (minProfit === maxProfit) {
+            minProfit = 0;
+            maxProfit = maxProfit || 1;
+        }
+
+        var sizeScale = d3.scale.linear()
+            .domain([minProfit, maxProfit])
+            .range([6, 26]);   // profit cao = điểm to hơn
+
+
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+            .ticks(5)
+            .tickFormat(function(d){ return (d/1e6).toFixed(1) + "M"; });
+
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .ticks(5)
+            .tickFormat(function(d){ return (d/1e6).toFixed(1) + "M"; });
+
+        topDirectors.forEach(function(td){
+            var panel = container.append("div")
+                .attr("class", "scatter-panel");
+
+            panel.append("div")
+                .attr("class", "scatter-title")
+                .text(td.name + " (" + td.movie_count + " movies)");
+
+            var svg = panel.append("svg")
+                .attr("width", width)
+                .attr("height", heightPer);
+
+            var g = svg.append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var movies = td.movies || [];
+            if (movies.length === 0) {
+                g.append("text")
+                    .attr("x", innerW/2)
+                    .attr("y", innerH/2)
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "11px")
+                    .text("No movie data.");
+                return;
+            }
+
+            // axes
+            g.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + innerH + ")")
+                .call(xAxis);
+
+            g.append("g")
+                .attr("class", "y axis")
+                .call(yAxis);
+
+            // labels trục
+            svg.append("text")
+                .attr("x", width/2)
+                .attr("y", heightPer - 10)
+                .attr("text-anchor", "middle")
+                .style("font-size", "11px")
+                .text("Budget (Million USD)");
+
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -heightPer/2)
+                .attr("y", 16)
+                .attr("text-anchor", "middle")
+                .style("font-size", "11px")
+                .text("Gross (Million USD)");
+
+            // scatter points
+            g.selectAll("circle")
+                .data(movies)
+                .enter()
+                .append("circle")
+                .attr("cx", function(m){ return x(m.budget || 0); })
+                .attr("cy", function(m){ return y(m.gross || 0); })
+                .attr("r", function(m){
+                    var profit = (m.gross || 0) - (m.budget || 0);
+                    return sizeScale(profit);
+                })
+
+                .style("fill", function(m){
+                    return m.rating != null ? color(m.rating) : "#999";
+                })
+                .style("opacity", 0.9)
+                .on("mouseover", function(m){
+                    tooltip
+                        .style("opacity", 0.95)
+                        .html(
+                            "<strong>" + m.title + "</strong><br/>" +
+                            "Budget: " + d3.format(",.0f")(m.budget) + "<br/>" +
+                            "Gross: "  + d3.format(",.0f")(m.gross) + "<br/>" +
+                            "Rating: " + (m.rating != null ? m.rating : "N/A")
+                        )
+                        .style("left", (d3.event.pageX + 15) + "px")
+                        .style("top", (d3.event.pageY - 10) + "px");
+                })
+                .on("mouseout", function(){
+                    tooltip.style("opacity", 0);
+                });
+        });
     }
 
-    // ======= Init =======
-    document.addEventListener("DOMContentLoaded", function() {
+    // ====== INIT ======
+    document.addEventListener("DOMContentLoaded", function(){
         initFilters();
         drawWorldMap();
         loadSummary();
-        window.addEventListener("resize", function() {
+
+        window.addEventListener("resize", function(){
             drawWorldMap();
             updateMapColors();
             if (currentCountry) {
@@ -636,5 +696,6 @@
         });
     });
 </script>
+
 </body>
 </html>
