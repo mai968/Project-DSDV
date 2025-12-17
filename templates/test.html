@@ -13,7 +13,9 @@
         html, body {
             height: 100%;
             font-family: 'Raleway', Arial, sans-serif;
+            overflow-x: hidden;
         }
+
         body {
             display: flex;
             flex-direction: column;
@@ -71,6 +73,7 @@
             border-radius: 10px;
             padding: 8px 10px;
             background-color: rgba(240,128,128,0.03);
+            overflow-x: hidden;
         }
         .panel h3 {
             font-size: 14px;
@@ -109,14 +112,40 @@
             font-weight: 600;
             margin: 2px 4px 0 4px;
         }
+
     </style>
+    <style>
+    /* Year labels: 1923 - 2021 */
+    #yearMinLabel,
+    #yearMaxLabel {
+        font-size: 13px;     /* chữ nhỏ lại */
+        margin: 0 10px;       /* khoảng cách tới slider */
+    }
+
+    /* chữ "Year:" và "to" */
+    .filters span {
+        margin: 0 11px;
+    }
+
+    /* Khoảng cách giữa "Year:" và năm */
+    .filters span:first-child {
+        margin-right: -15px;   /* 👈 tăng / giảm số này */
+    }
+    /* khoảng cách giữa 'to' và năm */
+    .filters span {
+        margin: 0 2px;   /* 👈 chỉnh số này */
+    }
+
+
+    </style>
+
 </head>
 <body>
 
 <div class="header">
     <div>
         <div class="header-title">Movie Visualization – Genre × Country × Directors</div>
-        <div class="header-sub">Heatmap (Rating) · Top Directors (bar ngang) · Movies (scatter: Budget vs Gross, màu Rating)</div>
+        <div class="header-sub">Heatmap (Rating) · Top Directors (Horizontal Bar Chart) · Movies (scatter: Budget vs Gross, Color by Rating)</div>
     </div>
     <div class="filters">
         <span>Year:</span>
@@ -137,15 +166,15 @@
 
     <div class="right-panel">
         <div class="panel">
-            <h3>1️⃣ Top directors by number of movies (bar ngang)</h3>
-            <small>Đếm số phim theo từng đạo diễn trong quốc gia & thể loại & khoảng năm đang chọn.</small>
+            <h3>1️⃣ Top directors by number of movies</h3>
+            <small>Counts the number of movies for each director within the selected country, genre, and year range.</small>
             <div id="directorBar"></div>
         </div>
 
         <div class="panel">
-            <h3>2️⃣ Top director(s) movies – Scatter (Budget vs Gross, màu = Rating)</h3>
+            <h3>2️⃣ Top director(s) movies </h3>
             <small>
-                Nếu có nhiều đạo diễn đồng top (số phim bằng nhau), mỗi đạo diễn sẽ có một scatter riêng.
+                If multiple directors are tied for the top position (with the same number of movies), each director will have a separate scatter plot.
             </small>
             <div id="movieScatter"></div>
         </div>
@@ -245,6 +274,8 @@
             currentGenre = this.value;
             loadSummary();
         });
+
+        
     }
 
     // ====== Vẽ map thế giới (1 lần) ======
@@ -334,18 +365,21 @@
 
         legend.append("text")
             .attr("x", 0)
-            .attr("y", 8)
+            .attr("y", 8 - 3)
+            .attr("font-size", "12px")
             .text("Average IMDb Rating");
 
         legend.append("text")
             .attr("x", 0)
             .attr("y", 10 + legendHeight + 12)
+            .attr("font-size", "12px")
             .text("Low");
 
         legend.append("text")
             .attr("x", legendWidth)
-            .attr("y", 10 + legendHeight + 12)
+            .attr("y", 10 + legendHeight + 14)
             .attr("text-anchor", "end")
+            .attr("font-size", "12px")
             .text("High");
     }
 
@@ -415,9 +449,15 @@
         var width = document.getElementById("directorBar").clientWidth || 360;
         var height = document.getElementById("directorBar").clientHeight || 240;
 
+        // var svg = container.append("svg")
+        //     .attr("width", width)
+        //     .attr("height", height);
         var svg = container.append("svg")
-            .attr("width", width)
-            .attr("height", height);
+            .attr("viewBox", "0 0 " + width + " " + height)
+            .attr("preserveAspectRatio", "xMidYMid meet")
+            .style("width", "100%")
+            .style("height", "auto");
+
 
         if (!directors || directors.length === 0) {
             svg.append("text")
@@ -434,7 +474,10 @@
         var innerH = height - margin.top - margin.bottom;
 
         var g = svg.append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            .attr(
+                "transform", 
+                "translate(" + (margin.left+10) + "," + (margin.top - 4) + ")"
+            );
 
         var maxCount = d3.max(directors, function(d){ return d.movie_count; }) || 1;
 
@@ -452,7 +495,7 @@
             .enter()
             .append("rect")
             .attr("class", "bar")
-            .attr("y", function(d){ return y(d.director); })
+            .attr("y", function(d){ return y(d.director)-4; })
             .attr("x", 0)
             .attr("height", y.rangeBand())
             .attr("width", function(d){ return x(d.movie_count); })
@@ -480,16 +523,21 @@
             .scale(y)
             .orient("left");
 
+        //axes
         g.append("g")
             .attr("class", "x axis")
-            .attr("transform", "translate(0," + innerH + ")")
-            .call(xAxis);
+            .attr("transform", "translate(0," + (innerH-5) + ")")
+            .call(xAxis)
+            .selectAll("text")
+            .style("font-size", "11px")
+            .attr("dy", "1.2em");
 
         g.append("g")
             .attr("class", "y axis")
             .call(yAxis)
             .selectAll("text")
-            .style("font-size", "11px");
+            .style("font-size", "11px")
+            .attr("dy", "-0.1em");
 
         svg.append("text")
             .attr("x", width/2)
@@ -497,6 +545,25 @@
             .attr("text-anchor", "middle")
             .style("font-size", "12px")
             .text("Top directors in " + countryName);
+
+        // labels trục
+        g.append("text")
+            .attr("class", "x label")
+            .attr("x", innerW / 2)
+            .attr("y", innerH + margin.bottom )
+            .attr("text-anchor", "middle")
+            .style("font-size", "11px")
+            .text("Number of Movies");
+
+        g.append("text")
+            .attr("class", "y label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -innerH / 2)
+            .attr("y", -margin.left -2)
+            .attr("text-anchor", "middle")
+            .style("font-size", "11px")
+            .text("Director");
+
     }
 
     // ====== Scatter: movies của top director(s) (có xử lý đồng top) ======
@@ -603,12 +670,18 @@
                 .attr("class", "scatter-title")
                 .text(td.name + " (" + td.movie_count + " movies)");
 
+            // var svg = panel.append("svg")
+            //     .attr("width", width)
+            //     .attr("height", heightPer);
             var svg = panel.append("svg")
-                .attr("width", width)
-                .attr("height", heightPer);
+                .attr("viewBox", "0 0 " + width + " " + heightPer)
+                .attr("preserveAspectRatio", "xMidYMid meet")
+                .style("width", "100%")
+                .style("height", heightPer + "px");
+
 
             var g = svg.append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                .attr("transform", "translate(" + (margin.left +10) + "," + margin.top + ")");
 
             var movies = td.movies || [];
             if (movies.length === 0) {
@@ -625,11 +698,17 @@
             g.append("g")
                 .attr("class", "x axis")
                 .attr("transform", "translate(0," + innerH + ")")
-                .call(xAxis);
+                .call(xAxis)
+                .selectAll("text")
+                .style("font-size", "11px")
+                .attr("dy", "1.2em");
 
             g.append("g")
                 .attr("class", "y axis")
-                .call(yAxis);
+                .call(yAxis)
+                .selectAll("text")
+                .style("font-size", "11px")
+                .attr("dx", "-0.6em");
 
             // labels trục
             svg.append("text")
@@ -642,7 +721,7 @@
             svg.append("text")
                 .attr("transform", "rotate(-90)")
                 .attr("x", -heightPer/2)
-                .attr("y", 16)
+                .attr("y", 15)
                 .attr("text-anchor", "middle")
                 .style("font-size", "11px")
                 .text("Gross (Million USD)");
@@ -695,6 +774,9 @@
             }
         });
     });
+
+
+    
 </script>
 
 </body>
